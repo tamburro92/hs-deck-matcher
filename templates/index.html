@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -95,21 +95,21 @@ button{font:inherit;color:var(--ink);cursor:pointer}
   <div id="msg"></div>
   <section class="panel" id="fPanel" hidden>
     <div class="row">
-      <label class="fld">Cerca<input id="q" placeholder="Deck o carta…"></label>
-      <label class="fld">Contiene carta<input id="inc" placeholder="es. Zilliax"></label>
-      <label class="fld">Senza carta<input id="exc" placeholder="es. Ysera"></label>
-      <label class="fld">Partite ≥<input id="mg" type="number" min="0" step="100"></label>
+      <label class="fld">Search<input id="q" placeholder="Deck or card…"></label>
+      <label class="fld">Contains card<input id="inc" placeholder="e.g. Zilliax"></label>
+      <label class="fld">Without card<input id="exc" placeholder="e.g. Ysera"></label>
+      <label class="fld">Games ≥<input id="mg" type="number" min="0" step="100"></label>
       <label class="fld">Win% ≥<input id="mw" type="number" min="0" max="100" step="1"></label>
-      <label class="fld" id="winWrap">Finestra (snapshot)<select id="win"><option value="patch">Intero periodo</option><option value="7">Ultimi 7 giorni</option><option value="1">Ultimo giorno</option></select></label>
-      <label class="fld">Ordina per<select id="sort">
-        <option value="wr">Winrate</option><option value="lb">Winrate affidabile (Wilson)</option><option value="games">Partite</option>
-        <option value="dust">Polvere mancante</option><option value="value">Qualità / prezzo</option><option value="trend">Trend</option><option value="name">Nome</option></select></label>
-      <button class="pill" id="dir" title="Inverti ordine">▼</button>
+      <label class="fld" id="winWrap">Window (snapshots)<select id="win"><option value="patch">Whole period</option><option value="7">Last 7 days</option><option value="1">Last day</option></select></label>
+      <label class="fld">Sort by<select id="sort">
+        <option value="wr">Winrate</option><option value="lb">Reliable winrate (Wilson)</option><option value="games">Games</option>
+        <option value="dust">Missing dust</option><option value="value">Value for dust</option><option value="trend">Trend</option><option value="name">Name</option></select></label>
+      <button class="pill" id="dir" title="Reverse order">▼</button>
     </div>
     <div class="row" id="clsChips"></div>
-    <div class="row"><span class="lbl">Polvere max</span><span id="bands"></span>
-      <label class="chk"><input id="auto" type="checkbox"> allarga se vuoto</label>
-      <label class="chk"><input id="aff" type="checkbox"> solo ciò che posso permettermi</label>
+    <div class="row"><span class="lbl">Max dust</span><span id="bands"></span>
+      <label class="chk"><input id="auto" type="checkbox"> widen if empty</label>
+      <label class="chk"><input id="aff" type="checkbox"> only what I can afford</label>
     </div>
   </section>
   <div class="note" id="note"></div>
@@ -118,9 +118,9 @@ button{font:inherit;color:var(--ink);cursor:pointer}
 <script>
 const $ = id => document.getElementById(id);
 const BANDS = [0, 400, 800, 1600, 3200, 6400, Infinity];
-const CLS = {DEATHKNIGHT:["Cavaliere della Morte","DK","#5fc2f0"],DEMONHUNTER:["Cacciatore di Demoni","CD","#35d6a0"],DRUID:["Druido","DR","#c9803d"],
-  HUNTER:["Cacciatore","CA","#7cbf4a"],MAGE:["Mago","MA","#4d9ce8"],PALADIN:["Paladino","PA","#f2cb52"],PRIEST:["Sacerdote","SA","#e8e8ee"],
-  ROGUE:["Ladro","LA","#b4b8c0"],SHAMAN:["Sciamano","SC","#5476f2"],WARLOCK:["Stregone","ST","#ad63dd"],WARRIOR:["Guerriero","GU","#e0584f"]};
+const CLS = {DEATHKNIGHT:["Death Knight","DK","#5fc2f0"],DEMONHUNTER:["Demon Hunter","DH","#35d6a0"],DRUID:["Druid","DR","#c9803d"],
+  HUNTER:["Hunter","HU","#7cbf4a"],MAGE:["Mage","MA","#4d9ce8"],PALADIN:["Paladin","PA","#f2cb52"],PRIEST:["Priest","PR","#e8e8ee"],
+  ROGUE:["Rogue","RO","#b4b8c0"],SHAMAN:["Shaman","SH","#5476f2"],WARLOCK:["Warlock","WL","#ad63dd"],WARRIOR:["Warrior","WR","#e0584f"]};
 const DEF = {q:"",inc:"",exc:"",mg:500,mw:0,win:"patch",sort:"wr",dir:-1,auto:true,aff:false,band:0,cls:[]};
 let src = "hs", D = null, F = {hs:{...DEF}, guru:{...DEF, mg:0}}, hsSel = null, missing = false, open = new Set();
 
@@ -130,8 +130,8 @@ const f = () => F[src];
 const wilson = (wr, n) => { if (!n) return 0; const p = wr/100, z = 1.96, d = 1 + z*z/n;
   return 100 * ((p + z*z/(2*n) - z*Math.sqrt(p*(1-p)/n + z*z/(4*n*n))) / d); };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const num = n => n.toLocaleString("it-IT");
-const when = s => s ? new Date(s).toLocaleString("it-IT", {dateStyle:"short", timeStyle:"short"}) : "—";
+const num = n => n.toLocaleString("en-US");
+const when = s => s ? new Date(s).toLocaleString("en-GB", {dateStyle:"short", timeStyle:"short"}) : "—";
 
 async function load(want) {
   D = await (await fetch(`/api/data?src=${src}&ds=${encodeURIComponent(want || "")}`)).json();
@@ -147,7 +147,7 @@ async function load(want) {
 
 function renderTop() {
   const c = D.collection;
-  $("dustbox").innerHTML = c ? `<small>la tua polvere</small><b>✦ ${num(c.dust)}</b>` : `<small>collezione non collegata</small>`;
+  $("dustbox").innerHTML = c ? `<small>your dust</small><b>✦ ${num(c.dust)}</b>` : `<small>collection not linked</small>`;
 }
 
 function opts(list, val) {
@@ -159,25 +159,25 @@ function renderDs() {
   if (src === "hs") {
     const o = D.hsOptions, info = D.selInfo;
     p.innerHTML = `<div class="row">
-      <label class="fld">Formato<select data-hs="GameType">${opts(o.GameType, hsSel.GameType)}</select></label>
+      <label class="fld">Format<select data-hs="GameType">${opts(o.GameType, hsSel.GameType)}</select></label>
       <label class="fld">Rank<select data-hs="LeagueRankRange">${opts(o.LeagueRankRange, hsSel.LeagueRankRange)}</select></label>
-      <label class="fld">Periodo<select data-hs="TimeRange">${opts(o.TimeRange, hsSel.TimeRange)}</select></label>
-      <button class="btn gold" id="conn">${missing ? "Importa questo set" : "Aggiorna questo set e la collezione"}</button></div>
-      <div class="info">${missing ? "Questo set non è ancora stato importato: premi il pulsante." : `Importato ${when(info.at)} · dati HSReplay del ${when(D.as_of)} · ${D.decks.length} deck`}
-      · I filtri con 🔒 richiedono HSReplay Premium.</div>`;
+      <label class="fld">Period<select data-hs="TimeRange">${opts(o.TimeRange, hsSel.TimeRange)}</select></label>
+      <button class="btn gold" id="conn">${missing ? "Import this set" : "Update this set and your collection"}</button></div>
+      <div class="info">${missing ? "This set has not been imported yet: press the button." : `Imported ${when(info.at)} · HSReplay data from ${when(D.as_of)} · ${D.decks.length} decks`}
+      · Filters marked 🔒 require HSReplay Premium.</div>`;
   } else {
     const ls = D.datasets.guru, schema = D.schema;
     const cur = D.selInfo ? Object.fromEntries(new URLSearchParams(D.selInfo.key)) : {};
-    const form = schema && schema.length ? `<details style="margin-top:10px"><summary class="lbl" style="cursor:pointer">Nuovo import con altri filtri</summary>
+    const form = schema && schema.length ? `<details style="margin-top:10px"><summary class="lbl" style="cursor:pointer">New import with other filters</summary>
       <div class="row" id="gForm">${schema.map(x => x.type === "select"
         ? `<label class="fld">${esc(x.label)}<select data-g="${esc(x.name)}">${x.options.map(op => `<option value="${esc(op.value)}" ${(cur[x.name] ?? x.value) === op.value ? "selected" : ""}>${esc(op.label)}</option>`).join("")}</select></label>`
         : x.type === "checkbox" ? `<label class="chk"><input type="checkbox" data-g="${esc(x.name)}" value="${esc(x.value || "true")}" ${cur[x.name] ? "checked" : ""}> ${esc(x.label)}</label>`
         : `<label class="fld">${esc(x.label)}<input data-g="${esc(x.name)}" value="${esc(cur[x.name] ?? x.value ?? "")}"></label>`).join("")}
-        <button class="btn" id="gNew">Apri HSGuru con questi filtri</button></div></details>` : "";
+        <button class="btn" id="gNew">Open HSGuru with these filters</button></div></details>` : "";
     p.innerHTML = `<div class="row">
-      ${ls.length ? `<label class="fld">Dataset importato<select id="gDs">${ls.map(x => `<option value="${esc(x.key)}" ${x.key === D.sel ? "selected" : ""}>${esc(x.label)} — ${x.n} deck, ${when(x.at)}</option>`).join("")}</select></label>` : ""}
-      <button class="btn gold" id="conn">${ls.length ? "Aggiorna questo dataset" : "Importa da HSGuru"}</button></div>
-      <div class="info">${ls.length ? "Periodo e rank dipendono dai filtri usati sul sito per quel dataset." : "Alla prima importazione leggo anche i filtri disponibili sul sito, così potrai sceglierli da qui."}</div>${form}`;
+      ${ls.length ? `<label class="fld">Imported dataset<select id="gDs">${ls.map(x => `<option value="${esc(x.key)}" ${x.key === D.sel ? "selected" : ""}>${esc(x.label)} — ${x.n} decks, ${when(x.at)}</option>`).join("")}</select></label>` : ""}
+      <button class="btn gold" id="conn">${ls.length ? "Update this dataset" : "Import from HSGuru"}</button></div>
+      <div class="info">${ls.length ? "Period and rank depend on the filters used on the site for that dataset." : "On the first import I also read the filters available on the site, so you can choose them from here."}</div>${form}`;
   }
 }
 
@@ -192,7 +192,7 @@ function loadControls() {
   w.options[1].disabled = !has(7); w.options[2].disabled = !has(1);
   if (w.selectedOptions[0] && w.selectedOptions[0].disabled) { w.value = "patch"; x.win = "patch"; }
   const cs = [...new Set(D.decks.map(d => d.cls))].sort();
-  $("clsChips").innerHTML = `<span class="lbl">Classi</span>` + cs.map(c => `<button class="chip-cls ${x.cls.includes(c) ? "on" : ""}" style="--cc:${CLS[c][2]}" data-cls="${c}"><i>${CLS[c][1]}</i>${CLS[c][0]}</button>`).join("");
+  $("clsChips").innerHTML = `<span class="lbl">Classes</span>` + cs.map(c => `<button class="chip-cls ${x.cls.includes(c) ? "on" : ""}" style="--cc:${CLS[c][2]}" data-cls="${c}"><i>${CLS[c][1]}</i>${CLS[c][0]}</button>`).join("");
 }
 
 function enrich() {
@@ -217,7 +217,7 @@ function enrich() {
 function card(r) {
   const [cn, ab, cc] = CLS[r.cls], isOpen = open.has(r.id);
   const gem = r.wr >= 56 ? "g-hi" : r.wr >= 50 ? "g-mid" : "g-lo";
-  const t = r.trend == null ? "" : `<span class="${r.trend >= 0 ? "up" : "dn"}">${r.trend >= 0 ? "▲" : "▼"} ${r.trend > 0 ? "+" : ""}${r.trend.toFixed(1)} oggi</span>`;
+  const t = r.trend == null ? "" : `<span class="${r.trend >= 0 ? "up" : "dn"}">${r.trend >= 0 ? "▲" : "▼"} ${r.trend > 0 ? "+" : ""}${r.trend.toFixed(1)} today</span>`;
   const miss = r.lines.filter(l => l.m).sort((a, b) => b.cost - a.cost);
   const chips = miss.slice(0, 6).map(l => `<span class="cm" style="color:var(--r-${l.rar})">${l.m}× ${esc(l.name)}</span>`).join("")
     + (miss.length > 6 ? `<span class="cm" style="color:var(--mut)">+${miss.length - 6}</span>` : "");
@@ -225,10 +225,10 @@ function card(r) {
     <div class="d-head" data-toggle><div class="d-emb">${ab}</div>
       <div class="d-t"><h3 title="${esc(r.name)}">${esc(r.name)}</h3><small>${cn}</small></div>
       <div class="gem ${gem}">${r.wr.toFixed(1)}<small>%</small></div></div>
-    <div class="d-stats"><span>🎮 ${num(r.games)} partite</span><span>Wilson ${r.lb.toFixed(1)}%</span>${t}</div>
-    <div class="d-foot">${r.dust ? `<span class="badge b-dust">✦ ${num(r.dust)}</span><span class="info">${r.miss} carte mancanti</span>` : `<span class="badge b-ok">Costruibile ✓</span>`}${chips}</div>`;
-  if (isOpen) h += `<div class="dl"><div class="dl-top"><button class="btn gold" data-copy="${esc(r.id)}">Copia deck code</button>
-    <span class="info">✓ ce l'hai · ✗ da craftare (polvere accanto)</span></div><div class="cards">${r.lines.map(l =>
+    <div class="d-stats"><span>🎮 ${num(r.games)} games</span><span>Wilson ${r.lb.toFixed(1)}%</span>${t}</div>
+    <div class="d-foot">${r.dust ? `<span class="badge b-dust">✦ ${num(r.dust)}</span><span class="info">${r.miss} missing cards</span>` : `<span class="badge b-ok">Buildable ✓</span>`}${chips}</div>`;
+  if (isOpen) h += `<div class="dl"><div class="dl-top"><button class="btn gold" data-copy="${esc(r.id)}">Copy deck code</button>
+    <span class="info">✓ owned · ✗ to craft (dust cost shown)</span></div><div class="cards">${r.lines.map(l =>
     `<div class="ln ${l.m ? "miss" : ""}"><div class="tile" style="background-image:url('https://art.hearthstonejson.com/v1/tiles/${l.cid}.webp')"></div>
       <span class="mana">${l.mana}</span><span class="nm" style="color:var(--r-${l.rar})">${l.n > 1 ? l.n + "× " : ""}${esc(l.name)}</span>
       <span class="st ${l.m ? "dn" : "up"}">${l.m ? "✗ " + l.m * l.cost : "✓"}</span></div>`).join("")}</div></div>`;
@@ -240,7 +240,7 @@ function render() {
   const x = f();
   $("grid").innerHTML = ""; $("note").textContent = "";
   if (missing || !D.decks.length) {
-    $("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">${missing ? "Set non ancora importato." : "Nessun dato ancora: premi il pulsante in alto per importare."}</div>`;
+    $("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">${missing ? "Set not imported yet." : "No data yet: press the button above to import."}</div>`;
     $("bands").innerHTML = ""; return;
   }
   let rows = enrich();
@@ -249,26 +249,26 @@ function render() {
   rows = rows.filter(r => r.games >= +x.mg && r.wr >= +x.mw && (!x.cls.length || x.cls.includes(r.cls))
     && (!q || r.name.toLowerCase().includes(q) || has(r, q)) && (!inc || has(r, inc)) && (!exc || !has(r, exc)));
   if (x.aff && D.collection) rows = rows.filter(r => r.dust <= D.collection.dust);
-  let note = D.collection ? "" : "Collezione non collegata: tutte le carte non gratuite risultano mancanti. ";
+  let note = D.collection ? "" : "Collection not linked: all non-free cards count as missing. ";
   let sel = rows.filter(r => r.dust <= BANDS[x.band]);
   if (!sel.length && x.auto) {
     let nb = x.band; while (!sel.length && nb < BANDS.length - 1) { nb++; sel = rows.filter(r => r.dust <= BANDS[nb]); }
-    if (sel.length) note += `Nessun deck ≤ ${BANDS[x.band]}: mostro fino a ${BANDS[nb] === Infinity ? "tutti" : BANDS[nb]}.`;
-    else { sel = [...rows].sort((a, c) => a.dust - c.dust).slice(0, 10); note += "Nessun deck nelle fasce: mostro i 10 più economici."; }
+    if (sel.length) note += `No deck ≤ ${BANDS[x.band]} dust: showing up to ${BANDS[nb] === Infinity ? "all" : BANDS[nb]}.`;
+    else { sel = [...rows].sort((a, c) => a.dust - c.dust).slice(0, 10); note += "No deck in any band: showing the 10 cheapest."; }
   }
   const asc = x.sort === "dust" || x.sort === "name" ? 1 : -1;   // verso naturale; il pulsante lo inverte
   sel.sort((a, c) => { const u = a[x.sort], v = c[x.sort];
     return (typeof u === "string" ? u.localeCompare(v) : (u ?? -1e12) - (v ?? -1e12)) * (x.dir < 0 ? (asc === 1 ? 1 : -1) : (asc === 1 ? -1 : 1)); });
-  $("note").textContent = `${note}${sel.length} deck`.trim();
-  $("grid").innerHTML = sel.slice(0, 200).map(card).join("") || `<div class="empty" style="grid-column:1/-1">Nessun deck con questi filtri.</div>`;
-  $("bands").innerHTML = BANDS.map((v, i) => `<button class="pill ${i === x.band ? "on" : ""}" data-b="${i}">${v === Infinity ? "tutti" : v === 0 ? "0" : "≤" + v}</button>`).join(" ");
+  $("note").textContent = `${note}${sel.length} decks`.trim();
+  $("grid").innerHTML = sel.slice(0, 200).map(card).join("") || `<div class="empty" style="grid-column:1/-1">No decks match these filters.</div>`;
+  $("bands").innerHTML = BANDS.map((v, i) => `<button class="pill ${i === x.band ? "on" : ""}" data-b="${i}">${v === Infinity ? "all" : v === 0 ? "0" : "≤" + v}</button>`).join(" ");
 }
 
 // ---- import
 function flash(html, err) { $("msg").innerHTML = html ? `<div class="msg ${err ? "err" : ""}">${html}</div>` : ""; }
 async function waitData() {
   const s = await (await fetch("/api/status")).json();
-  if (s.error) { flash("Errore: " + esc(s.error), true); return; }
+  if (s.error) { flash("Error: " + esc(s.error), true); return; }
   if (s.msg === "Dati ricevuti") { flash(""); const k = s.last && s.last.src === src ? s.last.key : null; load(k); return; }
   setTimeout(waitData, 1500);
 }
@@ -277,9 +277,9 @@ async function startImport(snippetUrl, siteUrl, extra) {
   let copied = true;
   try { await navigator.clipboard.writeText(code); } catch (e) { copied = false; }
   window.open(siteUrl, "_blank");
-  flash(`<b>1.</b> Nella scheda appena aperta${extra || ""} apri la console: <b>Cmd+Opt+J</b>.<br>
-    <b>2.</b> Incolla (Cmd+V) e premi Invio${copied ? "" : ` — non sono riuscito a copiare, <a href="${snippetUrl}" target="_blank">apri il codice</a> e copialo`}.
-    Se Chrome lo chiede, scrivi <code>allow pasting</code> e Invio, poi incolla di nuovo.<br><b>3.</b> Torna qui: la pagina si aggiorna da sola.`);
+  flash(`<b>1.</b> In the tab that just opened${extra || ""} open the console: <b>Cmd+Opt+J</b> (Ctrl+Shift+J on Windows/Linux).<br>
+    <b>2.</b> Paste (Cmd+V) and press Enter${copied ? "" : ` — I could not copy it, <a href="${snippetUrl}" target="_blank">open the code</a> and copy it`}.
+    If Chrome asks, type <code>allow pasting</code> and Enter, then paste again.<br><b>3.</b> Come back here: the page updates by itself.`);
   waitData();
 }
 
@@ -304,7 +304,7 @@ document.addEventListener("click", e => {
   }
   if (t.closest("#conn")) {
     if (src === "hs") startImport(`/api/snippet?gt=${hsSel.GameType}&rr=${hsSel.LeagueRankRange}&tr=${hsSel.TimeRange}`, "https://hsreplay.net/decks/");
-    else startImport("/api/snippet_guru", "https://www.hsguru.com/decks" + (D.sel ? "?" + D.sel : ""), D.sel ? "" : " (imposta prima i filtri che vuoi: periodo, rank, partite minime)");
+    else startImport("/api/snippet_guru", "https://www.hsguru.com/decks" + (D.sel ? "?" + D.sel : ""), D.sel ? "" : " (set the filters you want first: period, rank, min games)");
   } else if (t.closest("#gNew")) {
     const qs = new URLSearchParams();
     document.querySelectorAll("[data-g]").forEach(el => { const v = el.type === "checkbox" ? (el.checked ? el.value : "") : el.value; if (v !== "") qs.set(el.dataset.g, v); });
@@ -312,7 +312,7 @@ document.addEventListener("click", e => {
   } else if (t.closest("[data-b]")) { x.band = +t.closest("[data-b]").dataset.b; save(); render(); }
   else if (t.closest("[data-cls]")) { const c = t.closest("[data-cls]").dataset.cls; x.cls = x.cls.includes(c) ? x.cls.filter(y => y !== c) : [...x.cls, c]; save(); loadControls(); render(); }
   else if (t.closest("#dir")) { x.dir = -x.dir; $("dir").textContent = x.dir < 0 ? "▼" : "▲"; save(); render(); }
-  else if (t.dataset.copy) { navigator.clipboard.writeText(D.decks.find(d => d.id === t.dataset.copy).code); t.textContent = "Copiato ✓"; }
+  else if (t.dataset.copy) { navigator.clipboard.writeText(D.decks.find(d => d.id === t.dataset.copy).code); t.textContent = "Copied ✓"; }
   else if (t.closest("[data-toggle]")) { const id = t.closest(".deck").dataset.id; open.has(id) ? open.delete(id) : open.add(id); render(); }
 });
 load();

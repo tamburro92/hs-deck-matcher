@@ -16,10 +16,10 @@ PORT = 8765
 # Filtri di HSReplay: (valore, etichetta, richiede Premium). LAST_1_DAY / LAST_3_DAYS non esistono per questa query.
 HS_OPTIONS = {
     "GameType": [("RANKED_STANDARD", "Standard", False), ("RANKED_WILD", "Wild", False)],
-    "LeagueRankRange": [("BRONZE_THROUGH_GOLD", "Bronzo–Oro", False), ("DIAMOND_THROUGH_LEGEND", "Diamante–Leggenda", True),
-                        ("LEGEND", "Leggenda", True), ("TOP_1000_LEGEND", "Top 1000 Leggenda", True)],
-    "TimeRange": [("CURRENT_PATCH", "Patch corrente", False), ("CURRENT_EXPANSION", "Espansione corrente", False),
-                  ("LAST_7_DAYS", "Ultimi 7 giorni", True)],
+    "LeagueRankRange": [("BRONZE_THROUGH_GOLD", "Bronze–Gold", False), ("DIAMOND_THROUGH_LEGEND", "Diamond–Legend", True),
+                        ("LEGEND", "Legend", True), ("TOP_1000_LEGEND", "Top 1000 Legend", True)],
+    "TimeRange": [("CURRENT_PATCH", "Current patch", False), ("CURRENT_EXPANSION", "Current expansion", False),
+                  ("LAST_7_DAYS", "Last 7 days", True)],
 }
 HS_LABEL = {k: {v: l for v, l, _ in o} for k, o in HS_OPTIONS.items()}
 
@@ -33,7 +33,7 @@ def hs_params(q: dict) -> dict:
     for k in HS_OPTIONS:
         v = q.get(k, "")
         if v not in HS_LABEL[k]:
-            raise ValueError(f"parametro non valido: {k}={v}")
+            raise ValueError(f"invalid parameter: {k}={v}")
         out[k] = v
     return out
 
@@ -86,7 +86,7 @@ def parse_hs(meta: dict, wild: bool) -> tuple[list[dict], dict]:
                 continue
             for i, _ in cl:
                 used[i] = cardmod.card_info(allcards[i])
-            decks.append({"id": d["deck_id"], "cls": cls, "name": arch.get(d["archetype_id"]) or f"{cls.title()} (altro)",
+            decks.append({"id": d["deck_id"], "cls": cls, "name": arch.get(d["archetype_id"]) or f"{cls.title()} (other)",
                           "games": d["total_games"], "wr": d["win_rate"], "cards": cl,
                           "code": cardmod.deckstring(cls, cl, fmt)})
     return decks, used
@@ -107,7 +107,7 @@ def list_guru() -> list[dict]:
     for f in GURU_DIR.glob("*.json") if GURU_DIR.exists() else []:
         d = json.loads(f.read_text())
         out.append({"key": d["key"], "at": d["at"], "n": len(d["decks"]),
-                    "label": d["key"].replace("&", " · ").replace("=", ": ") or "Predefinito"})
+                    "label": d["key"].replace("&", " · ").replace("=", ": ") or "Default"})
     return sorted(out, key=lambda x: x["at"], reverse=True)
 
 
@@ -143,12 +143,12 @@ def build_data(src: str = "hs", ds: str | None = None) -> dict:
             "decks": decks, "cards": used, "collection": coll, **extra}
 
 
-SNIPPET = r"""(async()=>{const g=async u=>{const r=await fetch(u,{credentials:'include'});if(!r.ok)throw new Error(r.status===403?'Questo filtro richiede HSReplay Premium':u.split('?')[0]+' '+r.status);return r.json()};
+SNIPPET = r"""(async()=>{const g=async u=>{const r=await fetch(u,{credentials:'include'});if(!r.ok)throw new Error(r.status===403?'This filter requires HSReplay Premium':u.split('?')[0]+' '+r.status);return r.json()};
 try{const meta=await g('/analytics/query/list_decks_by_win_rate_v2/?GameType=__GT__&LeagueRankRange=__RR__&Region=ALL&TimeRange=__TR__');
 let arch=[];try{arch=await g('/api/v1/archetypes/')}catch(e){}
-const col={};try{const acc=await g('/api/v1/account/');for(const b of acc.blizzard_accounts||[]){for(const base of ['/api/v1/collection/','https://api.hsreplay.net/v1/collection/']){try{col[b.account_hi+'_'+b.account_lo]=await g(base+'?account_hi='+b.account_hi+'&account_lo='+b.account_lo+'&format=json');break}catch(e){}}}}catch(e){console.warn('collezione:',e.message)}
+const col={};try{const acc=await g('/api/v1/account/');for(const b of acc.blizzard_accounts||[]){for(const base of ['/api/v1/collection/','https://api.hsreplay.net/v1/collection/']){try{col[b.account_hi+'_'+b.account_lo]=await g(base+'?account_hi='+b.account_hi+'&account_lo='+b.account_lo+'&format=json');break}catch(e){}}}}catch(e){console.warn('collection:',e.message)}
 const r=await fetch('http://127.0.0.1:__PORT__/api/ingest',{method:'POST',body:JSON.stringify({params:{GameType:'__GT__',LeagueRankRange:'__RR__',TimeRange:'__TR__'},meta,arch,col})});
-console.log(r.ok?'HS Deck Matcher: dati inviati ('+Object.keys(col).length+' account con collezione). Torna alla scheda dell\'app.':'Errore app '+r.status)}catch(e){console.error('HS Deck Matcher:',e.message)}})();"""
+console.log(r.ok?'HS Deck Matcher: data sent ('+Object.keys(col).length+' accounts with a collection). Go back to the app tab.':'App error '+r.status)}catch(e){console.error('HS Deck Matcher:',e.message)}})();"""
 
 GURU_SNIPPET = r"""(async()=>{try{
 const rows=[],seen=new Set();
@@ -168,7 +168,7 @@ document.querySelectorAll('select[name],form input[name]').forEach(el=>{
  if(el.tagName==='SELECT')fields.push({name:n,label,type:'select',value:el.value,options:[...el.options].map(o=>({value:o.value,label:o.text.trim()}))});
  else fields.push({name:n,label,type:el.type==='checkbox'?'checkbox':'text',value:el.type==='checkbox'?(el.checked?el.value:''):el.value})});
 const r=await fetch('http://127.0.0.1:__PORT__/api/ingest_guru',{method:'POST',body:JSON.stringify({url:location.href,rows,schema:fields})});
-console.log(r.ok?'HS Deck Matcher: '+rows.length+' deck inviati da HSGuru. Torna alla scheda dell\'app.':'Errore app '+r.status)}catch(e){console.error('HS Deck Matcher:',e.message)}})();"""
+console.log(r.ok?'HS Deck Matcher: '+rows.length+' decks sent from HSGuru. Go back to the app tab.':'App error '+r.status)}catch(e){console.error('HS Deck Matcher:',e.message)}})();"""
 
 _NUM = re.compile(r"\d[\d.,]*")
 
