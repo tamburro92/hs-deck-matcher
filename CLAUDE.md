@@ -12,10 +12,10 @@ uv run pytest -q                 # test
 
 ## Architettura
 
-- `src/hsmatcher/server.py`: server `http.server` (nessun framework), `build_data()` che unisce meta, collezione e snapshot, snippet JS serviti da `/api/snippet` e `/api/snippet_guru`, endpoint `/api/ingest` e `/api/ingest_guru`.
+- `src/hsmatcher/server.py`: server `http.server` (nessun framework). Ogni combinazione di filtri è un **dataset** salvato a parte: `data/hs/<GameType>__<Rank>__<Time>.json` e `data/guru/<hash>.json` (chiave = query string dell'URL HSGuru). `build_data(src, ds)` serve il dataset scelto + collezione; `/api/snippet?gt&rr&tr` genera lo snippet HSReplay per quei filtri, `/api/snippet_guru` quello HSGuru (legge anche i campi del form dei filtri e li salva in `data/guru_schema.json`); `/api/ingest` e `/api/ingest_guru` ricevono i dati. `migrate()` converte i file della prima versione.
 - `src/hsmatcher/cards.py`: database carte HearthstoneJSON (`cards.json` completo, cache 7 giorni), deck code con la libreria `hearthstone`, costi di crafting (40/100/400/1600).
-- `src/hsmatcher/store.py`: snapshot SQLite del meta e finestre "ultimo giorno / 7 giorni" ricavate dalle differenze tra snapshot.
-- `templates/index.html`: pagina unica (JS vanilla); i calcoli di polvere, fasce e filtri sono lato browser. Due tab (HSReplay, HSGuru) con filtri separati.
+- `src/hsmatcher/store.py`: snapshot SQLite (colonna `key` = dataset) del meta e finestre "ultimo giorno / 7 giorni" ricavate dalle differenze tra snapshot.
+- `templates/index.html`: pagina unica (JS vanilla) a tema Hearthstone, deck come carte con tile da art.hearthstonejson.com; polvere, fasce e filtri calcolati lato browser. Due tab (HSReplay, HSGuru), filtri deck separati salvati in localStorage; sopra, il selettore di dataset (HSReplay: Formato/Rank/Periodo con 🔒 per i filtri Premium; HSGuru: dataset importati + form dei filtri letto dal sito).
 - `data/` (gitignored): `meta.json`, `collection.json`, `guru.json`, `snapshots.sqlite`, cache carte.
 
 ## Come arrivano i dati (importante)

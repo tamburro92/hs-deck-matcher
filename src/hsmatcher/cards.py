@@ -31,6 +31,6 @@ def deckstring(cls: str, cards: list[list[int]], fmt=FormatType.FT_STANDARD) -> 
 
 
 def card_info(c: dict) -> list:
-    """[nome, costo craft, gratis, mana]: Core/Basic sono gratis per tutti."""
+    """[nome, costo craft, gratis, mana, id carta, rarità]: Core/Basic sono gratis per tutti."""
     free = c.get("set") == "CORE" or c.get("rarity") in (None, "FREE")
-    return [c["name"], CRAFT.get(c.get("rarity"), 0), free, c.get("cost", 0)]
+    return [c["name"], CRAFT.get(c.get("rarity"), 0), free, c.get("cost", 0), c.get("id", ""), c.get("rarity") or "FREE"]

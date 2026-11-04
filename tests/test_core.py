@@ -13,7 +13,7 @@ def test_window_from_snapshots(tmp_path, monkeypatch):
     monkeypatch.setattr(store, "DB", tmp_path / "s.sqlite")
     c = store._db()
     now = time.time()
-    c.execute("insert into snap values (?,?,?,?,?)", (now - 2 * 86400, "a", "x", 1000, 50.0))
+    c.execute("insert into snap(ts,as_of,deck,games,wr,key) values (?,?,?,?,?,?)", (now - 2 * 86400, "a", "x", 1000, 50.0, "k"))
     c.commit()
-    out = store.windows([{"id": "x", "games": 1400, "wr": 55.0}], now)
+    out = store.windows("k", [{"id": "x", "games": 1400, "wr": 55.0}], now)
     assert out["x"][1] == [400, 67.5]

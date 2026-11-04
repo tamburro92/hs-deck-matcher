@@ -5,172 +5,315 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HS Deck Matcher</title>
 <style>
-:root{--bg:#f6f7f9;--fg:#1d2330;--mut:#667085;--card:#fff;--bd:#e2e5ea;--ac:#2f6feb;--ok:#13804a;--ko:#c0392b}
-@media (prefers-color-scheme:dark){:root{--bg:#14171d;--fg:#e8ebf0;--mut:#98a2b3;--card:#1c2029;--bd:#2c323d;--ac:#6ea0ff;--ok:#4cc38a;--ko:#ff7b6b}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif}
-header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--card)}
-h1{font-size:16px;margin:0}.mut{color:var(--mut)}
-button,select,input{font:inherit;color:inherit;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:5px 9px}
-button{cursor:pointer}button.on{background:var(--ac);color:#fff;border-color:var(--ac)}button:disabled{opacity:.5;cursor:default}
-main{padding:12px 16px;max-width:1200px;margin:auto}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
-.msg{padding:8px 12px;border-radius:6px;background:var(--card);border:1px solid var(--bd);margin:8px 0}.err{color:var(--ko)}
-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--bd);border-radius:8px}
-th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--bd)}th{cursor:pointer;white-space:nowrap;color:var(--mut);font-weight:600}
-td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}tr.d{cursor:pointer}tr.d:hover{background:var(--bg)}
-.ok{color:var(--ok)}.ko{color:var(--ko)}.det td{background:var(--bg)}
-.cards{columns:3 220px;font-size:13px}.cards div{break-inside:avoid}
-@media (max-width:640px){.hide-s{display:none}}
+:root{
+  --ink:#f4e7c8;--mut:#b9a57c;--gold:#f0c75e;--gold2:#b98a2e;--wood:#2a1d12;--wood2:#3b2918;--edge:#6e4f26;
+  --ok:#6fd48c;--ko:#ff7a66;--dust:#c58cff;--r-COMMON:#d8d8d8;--r-RARE:#5aa0f2;--r-EPIC:#c070f0;--r-LEGENDARY:#ff9f1a;--r-FREE:#9a8e78;
+  --serif:"Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;
+  background:radial-gradient(1200px 600px at 50% -10%,#4a3217 0%,rgba(74,50,23,0) 70%),
+             repeating-linear-gradient(90deg,rgba(255,255,255,.012) 0 2px,rgba(0,0,0,.02) 2px 4px),#150f09}
+.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;padding:14px 22px;border-bottom:3px solid var(--edge);
+  background:linear-gradient(#4a321a,#2a1d12);box-shadow:0 4px 18px rgba(0,0,0,.55)}
+.logo{font:700 24px/1 var(--serif);letter-spacing:.5px;color:var(--gold);text-shadow:0 2px 0 #5a3c0c,0 0 18px rgba(240,199,94,.35)}
+.logo i{font-style:normal;color:#8be0ff;text-shadow:0 0 12px #3aa7d6;margin-right:6px}
+.tabs{display:flex;gap:4px;margin-left:8px}
+.tabs button{font:700 14px var(--serif);padding:8px 18px;border:2px solid var(--edge);border-bottom:none;border-radius:10px 10px 0 0;
+  background:#241910;color:var(--mut);cursor:pointer;margin-bottom:-14px}
+.tabs button.on{background:linear-gradient(#6a4a22,#4b3419);color:var(--gold);border-color:var(--gold2)}
+.spacer{flex:1}
+.dustbox{display:flex;align-items:center;gap:8px;padding:6px 14px;border:2px solid var(--edge);border-radius:999px;background:#1b130c;font:700 16px var(--serif)}
+.dustbox b{color:var(--dust);text-shadow:0 0 10px rgba(197,140,255,.5)}.dustbox small{font:12px system-ui;color:var(--mut)}
+main{max-width:1320px;margin:22px auto;padding:0 18px}
+.panel{background:linear-gradient(#34261a,#251a10);border:2px solid var(--edge);border-radius:12px;padding:14px 16px;margin-bottom:14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 18px rgba(0,0,0,.4)}
+.row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:6px 0}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.8px}
+.lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.8px;align-self:center}
+select,input[type=text],input[type=number],input:not([type]){font:14px system-ui;color:var(--ink);background:#150e08;border:2px solid #5b4222;border-radius:8px;padding:7px 10px;min-width:0}
+select:focus,input:focus{outline:none;border-color:var(--gold)}
+input[type=text],input:not([type]){width:200px}input[type=number]{width:96px}
+button{font:inherit;color:var(--ink);cursor:pointer}
+.btn{font:700 14px var(--serif);padding:9px 18px;border-radius:9px;border:2px solid #6b4d1f;background:linear-gradient(#5a4122,#3b2915);color:var(--gold)}
+.btn:hover{filter:brightness(1.15)}
+.btn.gold{background:linear-gradient(#ffe08a,#e0a52f 55%,#b87d17);color:#3b2400;border-color:#fff1b8;text-shadow:0 1px 0 rgba(255,255,255,.4);box-shadow:0 3px 10px rgba(240,199,94,.25)}
+.btn:disabled{opacity:.5;cursor:default}
+.pill{padding:6px 13px;border-radius:999px;border:2px solid #5b4222;background:#1b130c;color:var(--mut);font-weight:600}
+.pill.on{background:linear-gradient(#e7b64a,#a8741a);color:#2c1c00;border-color:#ffe19a}
+.chip-cls{display:flex;align-items:center;gap:6px;padding:4px 11px 4px 5px;border-radius:999px;border:2px solid #5b4222;background:#1b130c;color:var(--mut);font-weight:600;font-size:13px}
+.chip-cls i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--cc);color:#101010;font:700 10px system-ui;font-style:normal}
+.chip-cls.on{border-color:var(--cc);color:var(--ink);box-shadow:0 0 12px -2px var(--cc)}
+.chk{display:flex;align-items:center;gap:6px;color:var(--ink)}
+.note{color:var(--gold);margin:4px 2px 10px;min-height:1px}
+.info{color:var(--mut);font-size:13px}
+.msg{padding:12px 16px;border-radius:10px;border:2px solid var(--gold2);background:#2b2012;margin-bottom:14px}.msg.err{border-color:var(--ko);color:var(--ko)}
+.msg code{background:#150e08;padding:1px 6px;border-radius:5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.deck{--cc:#999;position:relative;border-radius:14px;border:2px solid #5b4222;background:linear-gradient(#352619,#21170e);overflow:hidden;
+  box-shadow:0 6px 16px rgba(0,0,0,.45);transition:transform .12s,border-color .12s}
+.deck:hover{transform:translateY(-2px);border-color:var(--cc)}
+.deck.open{grid-column:1/-1}
+.d-head{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--cc) 38%,#1c130b) 0%,rgba(28,19,11,.2) 75%)}
+.d-emb{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff8 0,transparent 40%),var(--cc);
+  color:#111;font:700 15px var(--serif);border:3px solid #fff3;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+.d-t{flex:1;min-width:0}.d-t h3{margin:0;font:700 18px/1.15 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-t small{color:var(--mut)}
+.gem{flex:none;min-width:68px;text-align:center;padding:6px 8px;border-radius:12px;font:700 22px/1 var(--serif);border:2px solid #fff4;color:#12100b}
+.gem small{font-size:13px}.g-hi{background:linear-gradient(#9cf0b2,#37a65b)}.g-mid{background:linear-gradient(#ffe08a,#d89a25)}.g-lo{background:linear-gradient(#ffb0a0,#d0553f)}
+.d-stats{display:flex;flex-wrap:wrap;gap:6px 16px;padding:8px 14px;font-size:13px;color:var(--mut);border-top:1px solid #0006}
+.up{color:var(--ok)}.dn{color:var(--ko)}
+.d-foot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 14px 12px}
+.badge{padding:3px 11px;border-radius:999px;font:700 13px var(--serif);border:2px solid}
+.b-ok{color:#0d2a14;background:linear-gradient(#9cf0b2,#37a65b);border-color:#d6ffe0}
+.b-dust{color:#f1e1ff;background:#3a2358;border-color:#7a4cb8}
+.cm{padding:2px 8px;border-radius:6px;font-size:12px;background:#150e08;border:1px solid currentColor}
+.dl{padding:6px 14px 14px;border-top:1px solid #0006}
+.dl-top{display:flex;gap:10px;align-items:center;margin:6px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 10px}
+.ln{position:relative;display:flex;align-items:center;gap:8px;height:30px;padding:0 10px 0 4px;border-radius:5px;overflow:hidden;background:#150e08;border:1px solid #3a2a18}
+.ln .tile{position:absolute;right:0;top:0;bottom:0;width:62%;background-size:cover;background-position:right center;opacity:.8;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 60%);mask-image:linear-gradient(90deg,transparent,#000 60%)}
+.ln>*{position:relative}
+.mana{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#2a6fd0;border:2px solid #9cc3ff;font:700 12px system-ui;color:#fff}
+.ln .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;text-shadow:0 1px 2px #000}
+.ln.miss{border-color:#a8412f;background:#2a110c}.ln .st{font-weight:700;text-shadow:0 1px 2px #000}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+@media (max-width:640px){.grid{grid-template-columns:1fr}.top{padding:12px}.tabs button{margin-bottom:0}}
 </style>
 </head>
 <body>
-<header>
-  <h1>HS Deck Matcher</h1>
-  <button id="conn"></button>
-  <span id="info" class="mut"></span>
+<header class="top">
+  <div class="logo"><i>◆</i>HS Deck Matcher</div>
+  <nav class="tabs" id="tabs"><button data-src="hs" class="on">HSReplay</button><button data-src="guru">HSGuru</button></nav>
+  <div class="spacer"></div>
+  <div class="dustbox" id="dustbox"></div>
 </header>
 <main>
-  <div class="bar" id="tabs"><button data-src="hs" class="on">HSReplay</button><button data-src="guru">HSGuru</button></div>
+  <section class="panel" id="dsPanel"></section>
   <div id="msg"></div>
-  <div id="ui" hidden>
-    <div class="bar">
-      <select id="win"><option value="patch">Patch corrente</option><option value="7">Ultimi 7 giorni</option><option value="1">Ultimo giorno</option></select>
-      <select id="cls"><option value="">Tutte le classi</option></select>
-      <input id="q" placeholder="Cerca deck o carta…" size="22">
-      <input id="inc" placeholder="Contiene carta" size="14">
-      <input id="exc" placeholder="Senza carta" size="14">
-      <label>Partite ≥ <input id="mg" type="number" value="500" min="0" step="100" style="width:80px"></label>
-      <label>Win% ≥ <input id="mw" type="number" value="0" min="0" max="100" step="1" style="width:60px"></label>
+  <section class="panel" id="fPanel" hidden>
+    <div class="row">
+      <label class="fld">Cerca<input id="q" placeholder="Deck o carta…"></label>
+      <label class="fld">Contiene carta<input id="inc" placeholder="es. Zilliax"></label>
+      <label class="fld">Senza carta<input id="exc" placeholder="es. Ysera"></label>
+      <label class="fld">Partite ≥<input id="mg" type="number" min="0" step="100"></label>
+      <label class="fld">Win% ≥<input id="mw" type="number" min="0" max="100" step="1"></label>
+      <label class="fld" id="winWrap">Finestra (snapshot)<select id="win"><option value="patch">Intero periodo</option><option value="7">Ultimi 7 giorni</option><option value="1">Ultimo giorno</option></select></label>
+      <label class="fld">Ordina per<select id="sort">
+        <option value="wr">Winrate</option><option value="lb">Winrate affidabile (Wilson)</option><option value="games">Partite</option>
+        <option value="dust">Polvere mancante</option><option value="value">Qualità / prezzo</option><option value="trend">Trend</option><option value="name">Nome</option></select></label>
+      <button class="pill" id="dir" title="Inverti ordine">▼</button>
     </div>
-    <div class="bar">
-      <span class="mut">Polvere max:</span><span id="bands"></span>
-      <label><input id="auto" type="checkbox" checked> allarga se vuoto</label>
-      <label><input id="aff" type="checkbox"> solo ciò che posso permettermi</label>
+    <div class="row" id="clsChips"></div>
+    <div class="row"><span class="lbl">Polvere max</span><span id="bands"></span>
+      <label class="chk"><input id="auto" type="checkbox"> allarga se vuoto</label>
+      <label class="chk"><input id="aff" type="checkbox"> solo ciò che posso permettermi</label>
     </div>
-    <div id="note" class="mut"></div>
-    <table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table>
-  </div>
+  </section>
+  <div class="note" id="note"></div>
+  <div class="grid" id="grid"></div>
 </main>
 <script>
 const $ = id => document.getElementById(id);
 const BANDS = [0, 400, 800, 1600, 3200, 6400, Infinity];
-const COLS = [["name","Deck"],["cls","Classe"],["wr","Win%","n"],["lb","Wilson","n hide-s"],["games","Partite","n"],["trend","Trend","n hide-s"],["dust","Polvere","n"],["miss","Mancanti","n hide-s"]];
-let src = "hs", F = {}, D = null, band = 0, sortKey = "wr", sortDir = -1, open = new Set(), busy = false;
+const CLS = {DEATHKNIGHT:["Cavaliere della Morte","DK","#5fc2f0"],DEMONHUNTER:["Cacciatore di Demoni","CD","#35d6a0"],DRUID:["Druido","DR","#c9803d"],
+  HUNTER:["Cacciatore","CA","#7cbf4a"],MAGE:["Mago","MA","#4d9ce8"],PALADIN:["Paladino","PA","#f2cb52"],PRIEST:["Sacerdote","SA","#e8e8ee"],
+  ROGUE:["Ladro","LA","#b4b8c0"],SHAMAN:["Sciamano","SC","#5476f2"],WARLOCK:["Stregone","ST","#ad63dd"],WARRIOR:["Guerriero","GU","#e0584f"]};
+const DEF = {q:"",inc:"",exc:"",mg:500,mw:0,win:"patch",sort:"wr",dir:-1,auto:true,aff:false,band:0,cls:[]};
+let src = "hs", D = null, F = {hs:{...DEF}, guru:{...DEF, mg:0}}, hsSel = null, missing = false, open = new Set();
 
-const decks = () => src === "hs" ? D.decks : (D.guru ? D.guru.decks : []);
-const FIELDS = ["win", "cls", "q", "inc", "exc", "mg", "mw", "auto", "aff"];
-const getF = () => Object.fromEntries(FIELDS.map(k => [k, $(k).type === "checkbox" ? $(k).checked : $(k).value]));
-const setF = f => FIELDS.forEach(k => { if (f && k in f) { $(k).type === "checkbox" ? ($(k).checked = f[k]) : ($(k).value = f[k]); } });
-const DEF = {hs: {win: "patch", cls: "", q: "", inc: "", exc: "", mg: 500, mw: 0, auto: true, aff: false},
-             guru: {win: "patch", cls: "", q: "", inc: "", exc: "", mg: 0, mw: 0, auto: true, aff: false}};
+try { const s = JSON.parse(localStorage.getItem("hsm_f") || "null"); if (s) F = {hs:{...F.hs,...s.hs}, guru:{...F.guru,...s.guru}}; } catch (e) {}
+const save = () => { try { localStorage.setItem("hsm_f", JSON.stringify(F)); } catch (e) {} };
+const f = () => F[src];
 const wilson = (wr, n) => { if (!n) return 0; const p = wr/100, z = 1.96, d = 1 + z*z/n;
   return 100 * ((p + z*z/(2*n) - z*Math.sqrt(p*(1-p)/n + z*z/(4*n*n))) / d); };
-const fmt = (x, k=1) => x == null ? "—" : x.toFixed(k);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num = n => n.toLocaleString("it-IT");
+const when = s => s ? new Date(s).toLocaleString("it-IT", {dateStyle:"short", timeStyle:"short"}) : "—";
 
-async function load() {
-  D = await (await fetch("/api/data")).json();
-  const has = D.decks && D.decks.length;
-  $("ui").hidden = !has;
-  if (!F.hs) { F.hs = {...DEF.hs}; F.guru = {...DEF.guru}; }
-  $("win").style.display = src === "hs" ? "" : "none";
-  $("conn").textContent = src === "guru" ? (D.guru ? "Aggiorna da HSGuru" : "Importa da HSGuru") : !has ? "Connetti HSReplay" : (D.collection ? "Aggiorna meta e collezione" : "Connetti HSReplay (collezione)");
-  if (!has) { $("msg").innerHTML = '<div class="msg">Nessun dato ancora. Premi <b>Connetti HSReplay</b>: si apre Chrome, fai il login la prima volta.</div>'; return; }
-  if (src === "guru") $("info").textContent = D.guru ? `HSGuru: ${D.guru.decks.length} deck, importati ${new Date(D.guru.at).toLocaleString("it-IT")} · filtri scelti sul sito: ${D.guru.url}` : "Nessun dato HSGuru: premi Importa da HSGuru";
-  else $("info").textContent = `Aggiornato ${new Date(D.as_of).toLocaleString("it-IT")} · rank ${D.rank} · ` +
-    (D.collection ? `polvere posseduta ${D.collection.dust}` : "collezione non collegata");
+async function load(want) {
+  D = await (await fetch(`/api/data?src=${src}&ds=${encodeURIComponent(want || "")}`)).json();
+  missing = false;
+  if (src === "hs") {
+    const cur = D.selInfo && D.selInfo.params;
+    if (cur) hsSel = {...cur};
+    else if (!hsSel) hsSel = {GameType:"RANKED_STANDARD", LeagueRankRange:"BRONZE_THROUGH_GOLD", TimeRange:"CURRENT_PATCH"};
+    if (!D.selInfo) missing = true;
+  }
+  renderTop(); renderDs(); loadControls(); render();
+}
+
+function renderTop() {
+  const c = D.collection;
+  $("dustbox").innerHTML = c ? `<small>la tua polvere</small><b>✦ ${num(c.dust)}</b>` : `<small>collezione non collegata</small>`;
+}
+
+function opts(list, val) {
+  return list.map(o => `<option value="${o.value}" ${o.value === val ? "selected" : ""} ${o.locked ? "disabled" : ""}>${esc(o.label)}${o.locked ? " 🔒 Premium" : ""}</option>`).join("");
+}
+
+function renderDs() {
+  const p = $("dsPanel");
+  if (src === "hs") {
+    const o = D.hsOptions, info = D.selInfo;
+    p.innerHTML = `<div class="row">
+      <label class="fld">Formato<select data-hs="GameType">${opts(o.GameType, hsSel.GameType)}</select></label>
+      <label class="fld">Rank<select data-hs="LeagueRankRange">${opts(o.LeagueRankRange, hsSel.LeagueRankRange)}</select></label>
+      <label class="fld">Periodo<select data-hs="TimeRange">${opts(o.TimeRange, hsSel.TimeRange)}</select></label>
+      <button class="btn gold" id="conn">${missing ? "Importa questo set" : "Aggiorna questo set e la collezione"}</button></div>
+      <div class="info">${missing ? "Questo set non è ancora stato importato: premi il pulsante." : `Importato ${when(info.at)} · dati HSReplay del ${when(D.as_of)} · ${D.decks.length} deck`}
+      · I filtri con 🔒 richiedono HSReplay Premium.</div>`;
+  } else {
+    const ls = D.datasets.guru, schema = D.schema;
+    const cur = D.selInfo ? Object.fromEntries(new URLSearchParams(D.selInfo.key)) : {};
+    const form = schema && schema.length ? `<details style="margin-top:10px"><summary class="lbl" style="cursor:pointer">Nuovo import con altri filtri</summary>
+      <div class="row" id="gForm">${schema.map(x => x.type === "select"
+        ? `<label class="fld">${esc(x.label)}<select data-g="${esc(x.name)}">${x.options.map(op => `<option value="${esc(op.value)}" ${(cur[x.name] ?? x.value) === op.value ? "selected" : ""}>${esc(op.label)}</option>`).join("")}</select></label>`
+        : x.type === "checkbox" ? `<label class="chk"><input type="checkbox" data-g="${esc(x.name)}" value="${esc(x.value || "true")}" ${cur[x.name] ? "checked" : ""}> ${esc(x.label)}</label>`
+        : `<label class="fld">${esc(x.label)}<input data-g="${esc(x.name)}" value="${esc(cur[x.name] ?? x.value ?? "")}"></label>`).join("")}
+        <button class="btn" id="gNew">Apri HSGuru con questi filtri</button></div></details>` : "";
+    p.innerHTML = `<div class="row">
+      ${ls.length ? `<label class="fld">Dataset importato<select id="gDs">${ls.map(x => `<option value="${esc(x.key)}" ${x.key === D.sel ? "selected" : ""}>${esc(x.label)} — ${x.n} deck, ${when(x.at)}</option>`).join("")}</select></label>` : ""}
+      <button class="btn gold" id="conn">${ls.length ? "Aggiorna questo dataset" : "Importa da HSGuru"}</button></div>
+      <div class="info">${ls.length ? "Periodo e rank dipendono dai filtri usati sul sito per quel dataset." : "Alla prima importazione leggo anche i filtri disponibili sul sito, così potrai sceglierli da qui."}</div>${form}`;
+  }
+}
+
+function loadControls() {
+  const x = f();
+  for (const k of ["q","inc","exc","mg","mw","win","sort"]) $(k).value = x[k];
+  $("auto").checked = x.auto; $("aff").checked = x.aff;
+  $("dir").textContent = x.dir < 0 ? "▼" : "▲";
+  $("winWrap").style.display = src === "hs" ? "" : "none";
+  $("fPanel").hidden = !(D.decks && D.decks.length);
+  const w = $("win"), has = k => D.decks.some(d => d.w && d.w[k]);
+  w.options[1].disabled = !has(7); w.options[2].disabled = !has(1);
+  if (w.selectedOptions[0] && w.selectedOptions[0].disabled) { w.value = "patch"; x.win = "patch"; }
   const cs = [...new Set(D.decks.map(d => d.cls))].sort();
-  if ($("cls").options.length === 1) cs.forEach(c => $("cls").add(new Option(c[0] + c.slice(1).toLowerCase(), c)));
-  const wsel = $("win");
-  const has7 = D.decks.some(d => d.w && d.w[7]), has1 = D.decks.some(d => d.w && d.w[1]);
-  wsel.options[1].disabled = !has7; wsel.options[2].disabled = !has1;
-  render();
+  $("clsChips").innerHTML = `<span class="lbl">Classi</span>` + cs.map(c => `<button class="chip-cls ${x.cls.includes(c) ? "on" : ""}" style="--cc:${CLS[c][2]}" data-cls="${c}"><i>${CLS[c][1]}</i>${CLS[c][0]}</button>`).join("");
 }
 
 function enrich() {
-  const own = D.collection ? D.collection.cards : null, w = $("win").value;
-  return decks().map(d => {
+  const own = D.collection ? D.collection.cards : null, w = f().win;
+  return D.decks.map(d => {
     let dust = 0, miss = 0, lines = [];
     for (const [id, n] of d.cards) {
-      const [name, cost, free, mana] = D.cards[id];
-      const have = free ? 2 : (own ? (own[id] || 0) : 0);
-      const m = Math.max(0, n - have);
+      const [name, cost, free, mana, cid, rar] = D.cards[id];
+      const m = Math.max(0, n - (free ? 2 : (own ? (own[id] || 0) : 0)));
       dust += m * cost; miss += m;
-      lines.push({name, n, m, cost, mana, free});
+      lines.push({name, n, m, cost, mana, cid, rar: free ? "FREE" : rar});
     }
     lines.sort((a, b) => a.mana - b.mana || a.name.localeCompare(b.name));
     let games = d.games, wr = d.wr;
     if (src === "hs" && w !== "patch") { const x = d.w && d.w[w]; if (!x) return null; games = x[0]; wr = x[1]; }
-    const t = src === "hs" && d.w && d.w[1] ? d.w[1][1] - d.wr : null;
-    return {...d, games, wr, lb: wilson(wr, games), trend: t, dust, miss, lines};
+    const trend = src === "hs" && d.w && d.w[1] ? d.w[1][1] - d.wr : null;
+    return {...d, games, wr, lb: wilson(wr, games), trend, dust, miss, lines,
+            value: dust === 0 ? 1e9 + wr : (wr - 50) / dust * 1000};
   }).filter(Boolean);
+}
+
+function card(r) {
+  const [cn, ab, cc] = CLS[r.cls], isOpen = open.has(r.id);
+  const gem = r.wr >= 56 ? "g-hi" : r.wr >= 50 ? "g-mid" : "g-lo";
+  const t = r.trend == null ? "" : `<span class="${r.trend >= 0 ? "up" : "dn"}">${r.trend >= 0 ? "▲" : "▼"} ${r.trend > 0 ? "+" : ""}${r.trend.toFixed(1)} oggi</span>`;
+  const miss = r.lines.filter(l => l.m).sort((a, b) => b.cost - a.cost);
+  const chips = miss.slice(0, 6).map(l => `<span class="cm" style="color:var(--r-${l.rar})">${l.m}× ${esc(l.name)}</span>`).join("")
+    + (miss.length > 6 ? `<span class="cm" style="color:var(--mut)">+${miss.length - 6}</span>` : "");
+  let h = `<article class="deck ${isOpen ? "open" : ""}" style="--cc:${cc}" data-id="${esc(r.id)}">
+    <div class="d-head" data-toggle><div class="d-emb">${ab}</div>
+      <div class="d-t"><h3 title="${esc(r.name)}">${esc(r.name)}</h3><small>${cn}</small></div>
+      <div class="gem ${gem}">${r.wr.toFixed(1)}<small>%</small></div></div>
+    <div class="d-stats"><span>🎮 ${num(r.games)} partite</span><span>Wilson ${r.lb.toFixed(1)}%</span>${t}</div>
+    <div class="d-foot">${r.dust ? `<span class="badge b-dust">✦ ${num(r.dust)}</span><span class="info">${r.miss} carte mancanti</span>` : `<span class="badge b-ok">Costruibile ✓</span>`}${chips}</div>`;
+  if (isOpen) h += `<div class="dl"><div class="dl-top"><button class="btn gold" data-copy="${esc(r.id)}">Copia deck code</button>
+    <span class="info">✓ ce l'hai · ✗ da craftare (polvere accanto)</span></div><div class="cards">${r.lines.map(l =>
+    `<div class="ln ${l.m ? "miss" : ""}"><div class="tile" style="background-image:url('https://art.hearthstonejson.com/v1/tiles/${l.cid}.webp')"></div>
+      <span class="mana">${l.mana}</span><span class="nm" style="color:var(--r-${l.rar})">${l.n > 1 ? l.n + "× " : ""}${esc(l.name)}</span>
+      <span class="st ${l.m ? "dn" : "up"}">${l.m ? "✗ " + l.m * l.cost : "✓"}</span></div>`).join("")}</div></div>`;
+  return h + "</article>";
 }
 
 function render() {
   if (!D || !D.decks) return;
-  let rows = enrich();
-  const q = $("q").value.toLowerCase(), inc = $("inc").value.toLowerCase(), exc = $("exc").value.toLowerCase();
-  const mg = +$("mg").value, mw = +$("mw").value, cls = $("cls").value;
-  const has = (r, s) => r.lines.some(l => l.name.toLowerCase().includes(s));
-  rows = rows.filter(r => r.games >= mg && r.wr >= mw && (!cls || r.cls === cls)
-    && (!q || r.name.toLowerCase().includes(q) || has(r, q)) && (!inc || has(r, inc)) && (!exc || !has(r, exc)));
-  if ($("aff").checked && D.collection) rows = rows.filter(r => r.dust <= D.collection.dust);
-  let b = band, note = "";
-  if (!D.collection) note = "Collezione non collegata: tutte le carte non gratuite risultano mancanti.";
-  let sel = rows.filter(r => r.dust <= BANDS[b]);
-  if (!sel.length && $("auto").checked) {
-    let nb = b; while (!sel.length && nb < BANDS.length - 1) { nb++; sel = rows.filter(r => r.dust <= BANDS[nb]); }
-    if (sel.length) note += ` Nessun deck ≤ ${BANDS[b]}: mostro fino a ${BANDS[nb] === Infinity ? "tutti" : BANDS[nb]}.`;
-    else { sel = [...rows].sort((a, c) => a.dust - c.dust).slice(0, 10); note += " Nessun deck nelle fasce: mostro i 10 più economici."; }
+  const x = f();
+  $("grid").innerHTML = ""; $("note").textContent = "";
+  if (missing || !D.decks.length) {
+    $("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">${missing ? "Set non ancora importato." : "Nessun dato ancora: premi il pulsante in alto per importare."}</div>`;
+    $("bands").innerHTML = ""; return;
   }
-  $("note").textContent = note.trim();
-  sel.sort((a, c) => {
-    const x = a[sortKey], y = c[sortKey];
-    return (typeof x === "string" ? x.localeCompare(y) : (x ?? -1e9) - (y ?? -1e9)) * sortDir;
-  });
-  $("head").innerHTML = COLS.map(([k, l, c]) => `<th class="${c || ""}" data-k="${k}">${l}${k === sortKey ? (sortDir < 0 ? " ▼" : " ▲") : ""}</th>`).join("");
-  $("body").innerHTML = sel.slice(0, 300).map(r => {
-    const t = r.trend == null ? "—" : (r.trend > 0 ? "+" : "") + r.trend.toFixed(1);
-    let h = `<tr class="d" data-id="${r.id}"><td>${esc(r.name)}</td><td>${r.cls[0] + r.cls.slice(1).toLowerCase()}</td><td class="n">${fmt(r.wr)}</td>` +
-      `<td class="n hide-s">${fmt(r.lb)}</td><td class="n">${r.games.toLocaleString("it-IT")}</td><td class="n hide-s">${t}</td>` +
-      `<td class="n ${r.dust ? "" : "ok"}">${r.dust}</td><td class="n hide-s">${r.miss}</td></tr>`;
-    if (open.has(r.id)) h += `<tr class="det"><td colspan="8"><button data-copy="${r.id}">Copia deck code</button>` +
-      `<div class="cards">${r.lines.map(l => `<div class="${l.m ? "ko" : "ok"}">${l.m ? "✗" : "✓"} ${l.n}× ${esc(l.name)} <span class="mut">(${l.mana})${l.m ? " · " + l.m * l.cost : ""}</span></div>`).join("")}</div></td></tr>`;
-    return h;
-  }).join("") || `<tr><td colspan="8" class="mut">Nessun deck con questi filtri.</td></tr>`;
-  $("bands").innerHTML = BANDS.map((v, i) => `<button data-b="${i}" class="${i === band ? "on" : ""}">${v === Infinity ? "tutti" : v === 0 ? "0" : "≤" + v}</button>`).join(" ");
+  let rows = enrich();
+  const q = x.q.toLowerCase(), inc = x.inc.toLowerCase(), exc = x.exc.toLowerCase();
+  const has = (r, s) => r.lines.some(l => l.name.toLowerCase().includes(s));
+  rows = rows.filter(r => r.games >= +x.mg && r.wr >= +x.mw && (!x.cls.length || x.cls.includes(r.cls))
+    && (!q || r.name.toLowerCase().includes(q) || has(r, q)) && (!inc || has(r, inc)) && (!exc || !has(r, exc)));
+  if (x.aff && D.collection) rows = rows.filter(r => r.dust <= D.collection.dust);
+  let note = D.collection ? "" : "Collezione non collegata: tutte le carte non gratuite risultano mancanti. ";
+  let sel = rows.filter(r => r.dust <= BANDS[x.band]);
+  if (!sel.length && x.auto) {
+    let nb = x.band; while (!sel.length && nb < BANDS.length - 1) { nb++; sel = rows.filter(r => r.dust <= BANDS[nb]); }
+    if (sel.length) note += `Nessun deck ≤ ${BANDS[x.band]}: mostro fino a ${BANDS[nb] === Infinity ? "tutti" : BANDS[nb]}.`;
+    else { sel = [...rows].sort((a, c) => a.dust - c.dust).slice(0, 10); note += "Nessun deck nelle fasce: mostro i 10 più economici."; }
+  }
+  const asc = x.sort === "dust" || x.sort === "name" ? 1 : -1;   // verso naturale; il pulsante lo inverte
+  sel.sort((a, c) => { const u = a[x.sort], v = c[x.sort];
+    return (typeof u === "string" ? u.localeCompare(v) : (u ?? -1e12) - (v ?? -1e12)) * (x.dir < 0 ? (asc === 1 ? 1 : -1) : (asc === 1 ? -1 : 1)); });
+  $("note").textContent = `${note}${sel.length} deck`.trim();
+  $("grid").innerHTML = sel.slice(0, 200).map(card).join("") || `<div class="empty" style="grid-column:1/-1">Nessun deck con questi filtri.</div>`;
+  $("bands").innerHTML = BANDS.map((v, i) => `<button class="pill ${i === x.band ? "on" : ""}" data-b="${i}">${v === Infinity ? "tutti" : v === 0 ? "0" : "≤" + v}</button>`).join(" ");
 }
 
-let lastAsOf = null;
+// ---- import
+function flash(html, err) { $("msg").innerHTML = html ? `<div class="msg ${err ? "err" : ""}">${html}</div>` : ""; }
 async function waitData() {
   const s = await (await fetch("/api/status")).json();
-  if (s.error) { $("msg").innerHTML = `<div class="msg err">Errore: ${esc(s.error)}</div>`; return; }
-  if (s.msg === "Dati ricevuti") { await fetch("/api/status"); $("msg").innerHTML = ""; $("conn").disabled = false; load(); return; }
+  if (s.error) { flash("Errore: " + esc(s.error), true); return; }
+  if (s.msg === "Dati ricevuti") { flash(""); const k = s.last && s.last.src === src ? s.last.key : null; load(k); return; }
   setTimeout(waitData, 1500);
 }
-$("conn").onclick = async () => {
-  const code = await (await fetch(src === "guru" ? "/api/snippet_guru" : "/api/snippet")).text();
+async function startImport(snippetUrl, siteUrl, extra) {
+  const code = await (await fetch(snippetUrl)).text();
   let copied = true;
   try { await navigator.clipboard.writeText(code); } catch (e) { copied = false; }
-  window.open(src === "guru" ? "https://www.hsguru.com/decks" : "https://hsreplay.net/decks/", "_blank");
-  $("msg").innerHTML = `<div class="msg"><b>1.</b> Nella scheda appena aperta (su HSGuru imposta prima i filtri che vuoi: periodo, rank, partite minime) apri la console: <b>Cmd+Opt+J</b>.<br>` +
-    `<b>2.</b> Incolla (Cmd+V) e premi Invio${copied ? "" : " — il codice non è stato copiato, <a href='/api/snippet' target='_blank'>aprilo qui</a> e copialo"}. ` +
-    `Se Chrome lo chiede, scrivi <code>allow pasting</code> e Invio, poi incolla di nuovo.<br>` +
-    `<b>3.</b> Torna qui: la pagina si aggiorna da sola.</div>`;
-  fetch("/api/status"); waitData();
-};
-document.addEventListener("input", e => { if (e.target.closest("#ui")) render(); });
-document.addEventListener("click", e => {
+  window.open(siteUrl, "_blank");
+  flash(`<b>1.</b> Nella scheda appena aperta${extra || ""} apri la console: <b>Cmd+Opt+J</b>.<br>
+    <b>2.</b> Incolla (Cmd+V) e premi Invio${copied ? "" : ` — non sono riuscito a copiare, <a href="${snippetUrl}" target="_blank">apri il codice</a> e copialo`}.
+    Se Chrome lo chiede, scrivi <code>allow pasting</code> e Invio, poi incolla di nuovo.<br><b>3.</b> Torna qui: la pagina si aggiorna da sola.`);
+  waitData();
+}
+
+document.addEventListener("input", e => {
+  const t = e.target; if (!t.closest("#fPanel")) return;
+  const x = f(); x[t.id] = t.type === "checkbox" ? t.checked : t.value; save(); render();
+});
+document.addEventListener("change", async e => {
   const t = e.target;
-  if (t.dataset.src && t.dataset.src !== src) {
-    F[src] = getF(); src = t.dataset.src; setF(F[src]);
-    document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.src === src));
-    $("msg").innerHTML = ""; open.clear(); load();
+  if (t.dataset.hs) {
+    hsSel[t.dataset.hs] = t.value;
+    const key = `${hsSel.GameType}__${hsSel.LeagueRankRange}__${hsSel.TimeRange}`;
+    if (D.datasets.hs.some(d => d.key === key)) load(key); else { missing = true; D.decks = []; D.selInfo = null; renderDs(); loadControls(); render(); }
+  } else if (t.id === "gDs") { open.clear(); load(t.value); }
+});
+document.addEventListener("click", e => {
+  const t = e.target, x = f();
+  const tab = t.closest("[data-src]");
+  if (tab && tab.dataset.src !== src) {
+    src = tab.dataset.src; open.clear(); flash("");
+    document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.src === src)); load(); return;
   }
-  else if (t.dataset.b) { band = +t.dataset.b; render(); }
-  else if (t.dataset.copy) { navigator.clipboard.writeText(decks().find(d => d.id === t.dataset.copy).code); t.textContent = "Copiato ✓"; }
-  else if (t.closest("th[data-k]")) { const k = t.closest("th").dataset.k; sortDir = k === sortKey ? -sortDir : (k === "name" || k === "cls" ? 1 : -1); sortKey = k; render(); }
-  else if (t.closest("tr.d")) { const id = t.closest("tr").dataset.id; open.has(id) ? open.delete(id) : open.add(id); render(); }
+  if (t.closest("#conn")) {
+    if (src === "hs") startImport(`/api/snippet?gt=${hsSel.GameType}&rr=${hsSel.LeagueRankRange}&tr=${hsSel.TimeRange}`, "https://hsreplay.net/decks/");
+    else startImport("/api/snippet_guru", "https://www.hsguru.com/decks" + (D.sel ? "?" + D.sel : ""), D.sel ? "" : " (imposta prima i filtri che vuoi: periodo, rank, partite minime)");
+  } else if (t.closest("#gNew")) {
+    const qs = new URLSearchParams();
+    document.querySelectorAll("[data-g]").forEach(el => { const v = el.type === "checkbox" ? (el.checked ? el.value : "") : el.value; if (v !== "") qs.set(el.dataset.g, v); });
+    startImport("/api/snippet_guru", "https://www.hsguru.com/decks?" + qs.toString());
+  } else if (t.closest("[data-b]")) { x.band = +t.closest("[data-b]").dataset.b; save(); render(); }
+  else if (t.closest("[data-cls]")) { const c = t.closest("[data-cls]").dataset.cls; x.cls = x.cls.includes(c) ? x.cls.filter(y => y !== c) : [...x.cls, c]; save(); loadControls(); render(); }
+  else if (t.closest("#dir")) { x.dir = -x.dir; $("dir").textContent = x.dir < 0 ? "▼" : "▲"; save(); render(); }
+  else if (t.dataset.copy) { navigator.clipboard.writeText(D.decks.find(d => d.id === t.dataset.copy).code); t.textContent = "Copiato ✓"; }
+  else if (t.closest("[data-toggle]")) { const id = t.closest(".deck").dataset.id; open.has(id) ? open.delete(id) : open.add(id); render(); }
 });
 load();
 </script>
