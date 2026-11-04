@@ -67,6 +67,10 @@ tests/
 - Raggruppamento per archetipo e grafico polvere/winrate.
 - Aggiornamento automatico e login OAuth, se HSReplay rilascia le chiavi.
 
+## Licenza
+
+[MIT](LICENSE).
+
 ## Note legali
 
 Hearthstone è un marchio di Blizzard Entertainment. I dati delle carte vengono da HearthstoneJSON; le statistiche dei deck sono dei rispettivi siti e qui vengono solo mostrate in locale per uso personale. Rispetta i termini d'uso di HSReplay e HSGuru.
